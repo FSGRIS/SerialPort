@@ -6,13 +6,17 @@
 #include <errno.h>      // Error number definitions
 #include <termios.h>    // POSIX terminal control definitions
 #include <iostream>
+#include "ros/ros.h"
+#include "std_msgs/String.h"
 
 using namespace std;
 
-int sendDegree(int, int);
+int sendDegree(const std_msgs::String::ConstPtr& msg);
+
+int USB;
 
 int main(int argc, char** argv) {
-	int USB = open("/dev/ttyACM1", O_RDWR| O_NOCTTY);
+	USB = open("/dev/ttyACM1", O_RDWR| O_NOCTTY);
 	if (USB < 0) {
 		cout << "Error, couldn't open USB /dev/ttyACM0, " << errno << endl;
 	}
@@ -57,8 +61,11 @@ int main(int argc, char** argv) {
 	}
 }
 
-int sendDegree(int degree, int USB) {
-	cout << "Sending..." << endl;
+// message format should be "servoNum:degree:"
+int sendDegree(const std_msgs::String::ConstPtr& msg) {//int degree, int USB) {
+	string servoNum = strtok(msg.data, ":");
+	string degree = strtok(NULL, ":");
+	ROS_INFO("Sending...");
 	int n_written = 0;
 	do {
 	    n_written = write( USB, &degree, 1 );
