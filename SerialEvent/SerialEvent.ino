@@ -21,24 +21,42 @@
 #define MAX_DEGREE 175 // max without weird jitter
 #define MIN_DEGREE 2   // min without weird jitter
 
-int degree = 0;
-boolean stringComplete = false;  // whether the string is complete
-int servoPin = 9;
-Servo myServo;
+int degrees = {0, 0, 0, 0};
+boolean received = false;  // whether the string is complete
+int servo0Pin = 9;
+int servo1Pin = 10;
+int servo2Pin = 11;
+int servo3Pin = 12;
+
+Servo servo0;
+Servo servo1;
+Servo servo2;
+Servo servo3;
 
 void setup() {
   // initialize serial:
   Serial.begin(9600);
-  myServo.attach(9);
+  servo0.attach(servo0Pin);
+  servo1.attach(servo1Pin);
+  servo2.attach(servo2Pin);  
+  servo3.attach(servo3Pin);  
 }
 
 void loop() {
   // print the string when a newline arrives:
-  if (stringComplete) {
-    Serial.println(degree);
-    myServo.write(degree);
-    // clear the string:
-    stringComplete = false;
+  if (received) {
+	servo0.write(degrees[0]);
+	servo1.write(degrees[1]);
+	servo2.write(degrees[2]);
+	servo3.write(degrees[3]);	
+
+	received = false;
+
+	int i;
+	for (i = 0; i < 4; i++) {
+		Serial.println(degrees[i]);
+	}
+	Serial.println();
   }
 }
 
@@ -50,19 +68,17 @@ void loop() {
  */
 void serialEvent() {
   while (Serial.available()) {
-    // get the new byte:
-    degree = (int)Serial.read();
-    
-    if (degree > MAX_DEGREE)
-      degree = MAX_DEGREE;
+	// get the new byte:
+  	int servoNum = (int)Serial.read();
+  	degrees[servoNum] = (int)Serial.read();
+		
+	if (degrees[servoNum] > MAX_DEGREE)
+	  degrees[servoNum] = MAX_DEGREE;
 
-    if (degree < MIN_DEGREE)
-      degree = MIN_DEGREE;
-      
-    // add it to the inputString:
-    // if the incoming character is a newline, set a flag
-    // so the main loop can do something about it:
-    stringComplete = true;
+	if (degrees[servoNum] < MIN_DEGREE)
+	  degrees[servoNum] = MIN_DEGREE;		
+
+	received = true;
   }
 }
 
